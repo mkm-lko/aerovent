@@ -35,6 +35,8 @@ class AeroVentEngine {
         
         // Window Performance Listeners Setup
         window.addEventListener('scroll', () => this.handleScrollThrottle(), { passive: true });
+        window.addEventListener('hashchange', () => this.handleRouteChange());
+        this.handleRouteChange(true);
     }
 
     /**
@@ -91,10 +93,71 @@ class AeroVentEngine {
         if (this.dom.mobileToggle) {
             this.dom.mobileToggle.addEventListener('click', () => {
                 const expanded = this.dom.mobileToggle.getAttribute('aria-expanded') === 'true';
-                this.dom.mobileToggle.setAttribute('aria-expanded', !expanded);
-                // Production extensions inject full modal logic inside template targets here
+                this.dom.mobileToggle.setAttribute('aria-expanded', (!expanded).toString());
+                this.dom.navbar.classList.toggle('nav-open');
             });
         }
+
+        this.dom.navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href || !href.startsWith('#')) return;
+
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const targetSection = document.querySelector(href);
+                if (!targetSection) return;
+
+                if (this.dom.navbar.classList.contains('nav-open')) {
+                    this.dom.navbar.classList.remove('nav-open');
+                    if (this.dom.mobileToggle) {
+                        this.dom.mobileToggle.setAttribute('aria-expanded', 'false');
+                    }
+                }
+
+                window.location.hash = href;
+                this.navigateToPage(targetSection);
+            });
+        });
+    }
+
+    handleRouteChange(initial = false) {
+        const hash = window.location.hash || '#hero';
+        const targetSection = document.querySelector(hash);
+        if (targetSection) {
+            this.highlightNavLink(hash);
+            if (!initial) {
+                this.animatePageIncoming(targetSection);
+            }
+            const sectionTop = window.scrollY + targetSection.getBoundingClientRect().top - 90;
+            window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+        }
+    }
+
+    navigateToPage(targetSection) {
+        const targetId = targetSection.getAttribute('id');
+        const hash = `#${targetId}`;
+
+        this.highlightNavLink(hash);
+        window.history.pushState(null, '', hash);
+        this.animatePageIncoming(targetSection);
+
+        const sectionTop = window.scrollY + targetSection.getBoundingClientRect().top - 90;
+        window.scrollTo({ top: sectionTop, behavior: 'smooth' });
+    }
+
+    highlightNavLink(hash) {
+        this.dom.navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === hash);
+        });
+    }
+
+    animatePageIncoming(section) {
+        section.classList.remove('page-slide-up');
+        void section.offsetWidth;
+        section.classList.add('page-slide-up');
+        section.addEventListener('animationend', () => {
+            section.classList.remove('page-slide-up');
+        }, { once: true });
     }
 
     /**

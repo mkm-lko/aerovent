@@ -52,6 +52,34 @@ body {
     letter-spacing: -0.01em;
 }
 
+main {
+    position: relative;
+    min-height: calc(100vh - var(--nav-height));
+}
+
+main > section {
+    transform: translateY(0);
+}
+
+main > section.active-page {
+    /* Kept for compatibility, no hiding logic required */
+}
+
+.page-slide-up {
+    animation: slideFromBottom 0.75s var(--ease-premium) forwards;
+}
+
+@keyframes slideFromBottom {
+    0% {
+        opacity: 0;
+        transform: translateY(48px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 h1, h2, h3, h4 {
     font-family: 'Poppins', sans-serif;
     font-weight: 700;
@@ -1295,6 +1323,26 @@ a {
     }
     .nav-links {
         display: none; /* In production script handling opens mobile wire overlays */
+        flex-direction: column;
+        position: absolute;
+        top: var(--nav-height);
+        left: 0;
+        right: 0;
+        background: rgba(5, 5, 5, 0.98);
+        padding: 24px;
+        gap: 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        z-index: 999;
+    }
+    .navbar.nav-open .nav-links {
+        display: flex;
+    }
+    .nav-item {
+        width: 100%;
+        padding: 14px 0;
+    }
+    .nav-actions {
+        display: none;
     }
     .mobile-toggle {
         display: block;
